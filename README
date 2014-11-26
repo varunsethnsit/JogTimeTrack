@@ -1,0 +1,7 @@
+1. Make sure node is installed on your system. If not installed, download the installer and install http://nodejs.org/download/
+2. Make sure redis is installed, download the redis server.
+2. Clone the repository git@git.toptal.com:Varun-Seth/varun-seth.git
+3. Install the application, npm install
+4. Initiate the redis server
+5. Start the server node app.js
+6. Connect with the client browser through http://127.0.0.1:8000

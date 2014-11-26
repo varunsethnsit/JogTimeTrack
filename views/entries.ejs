@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/jquery-1.8.0.min.js" type='text/javascript'></script>
+    <script src="http://code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+    <script src='/socket.io/socket.io.js' type='text/javascript'></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script> google.load('visualization', '1.0', {'packages':['corechart']});  </script>
+  </head>
+
+  <body>
+    <% include menu %>
+      <div class='main-heading'> Jogging Time Tracker </div>
+      
+      <div class='first-one'>
+        <h3><u>Filter the entries date-wise</u></h3>
+        <h4>
+            From Date: 
+            <input type='text' id='from_datepicker' class='date_input' />&nbsp;&nbsp;&nbsp;&nbsp
+            To Date: 
+            <input type='text' id='to_datepicker' class='date_input' />
+            <input type='button' value='Filter' id='JogEntryFilter' class='filter_input' />
+        </h4>
+      </div>
+      
+      
+      <div class='second-one'>
+        <form id="JogEntryAdd" class='Entry-Container'>
+            <h3><u>Add Entries</u></h3>
+            <h4>
+                <input type='text' id='date_entry' placeholder='Date' class='date_input' required />
+                <input type='number' id='distance_entry' placeholder='Distance' step="any" min="0.00001" class='distance_input' required />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kms
+                <input type='number' id='time_entry' placeholder='Time' step="any" min="0.0002777" max="24" class='time_input' required />&nbsp;&nbsp;&nbsp; hrs.
+                <input type='submit' value='Add Timings' class='entry_input'/>
+            </h4>
+        </form>
+      </div>
+
+    <div class='EntryTable'>
+    <h3><u>Entries posted by you</u></h3>
+     <table id='JogEntryTable' class='JogEntries'>
+        <thead bgcolor='RoyalBlue'>
+          <th>Date</th>
+          <th>Distance (kms)</th>
+          <th>Time (hrs.)</th>
+          <th>Speed (km/hr)</th>
+        </thead>
+        <tbody>
+       <% entries.forEach(function(entry) { %>
+        <% entryDate = new Date(entry.date); %>
+          <% entryDateString = entryDate.toDateString(); %>
+          <tr bgcolor='#CEF6F5' align='center'>
+            <td><%= entryDateString %></td>
+            <td><%= entry.distance %></td>
+            <td><%= entry.time %></td>
+            <td><%= entry.speed %></td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    
+      <div class="chart-pos">
+        <h3><u>Distance and Average-speed Report</u></h3>
+        <div id="chart_div"></div>
+      </div>  
+    </div>
+ </body>
+
+  <script>
+        var JogPosts = [];
+        var socket = io.connect();
+        var chart = [];
+
+        var TimeTracker = function(socket) {
+            this.socket = socket;
+        }
+
+        TimeTracker.prototype.storeEntry = function(entry, date, distance, time, speed) {
+        
+        }
+          
+        function drawVisualization(JogPosts) {
+              var l = JogPosts.length;
+              var WeekNumbers = [];
+              if(l==0)return;
+              for(var i=0; i<l; i++) {
+                var dateEntry = new Date(JogPosts[i].date);
+                var weekNumber = $.datepicker.iso8601Week(dateEntry);
+                var fullYear = dateEntry.getFullYear();
+                var WeekOfYear = weekNumber + '-' + fullYear;
+                 
+                if(WeekNumbers[WeekOfYear]!=null && WeekNumbers[WeekOfYear]!="") {
+                    WeekNumbers[WeekOfYear].distance += parseInt(JogPosts[i].distance);
+                    WeekNumbers[WeekOfYear].time += parseInt(JogPosts[i].time);
+                } else {
+                    WeekNumbers[WeekOfYear] = {distance: parseInt(JogPosts[i].distance), time: parseInt(JogPosts[i].time)};
+                }
+          }
+
+          var Arr = [['WeekOfYear', 'Average Distance[km]', 'Average Speed[km/hr]'],];
+          for(var key in WeekNumbers) {
+            var average_distance = parseFloat((WeekNumbers[key].distance/l).toFixed(2));
+            var average_speed = parseFloat((WeekNumbers[key].distance/WeekNumbers[key].time).toFixed(2));
+            Arr.push([key, average_distance, average_speed]);
+          }
+          var data = google.visualization.arrayToDataTable(Arr);
+
+          var options = {
+            title : 'Distance and Average Speed Week-wise',
+            vAxis: {title: "kms & km/hr"},
+            hAxis: {title: "Week-of-Year (ith Week of yyyy Year)"},
+            seriesType: "bars",
+            series: {2: {type: "line"}}
+          };
+
+          chart = new google.visualization.ComboChart(document.getElementById('chart_div'));
+          chart.draw(data, options);
+      }
+
+      $(function() {
+            $( "#date_entry" ).datepicker({ 
+                minDate: new Date(0), maxDate: new Date(), changeMonth: true, changeYear: true,  dateFormat: "yy-mm-dd", yearRange:"c-50:c+50",
+                onSelect:         
+                  function(date) {
+                      //alert(date);
+                  }
+           });
+
+           $( "#to_datepicker" ).datepicker( { 
+                minDate: new Date(0), maxDate: new Date(), changeMonth: true, changeYear: true,  dateFormat: "yy-mm-dd", yearRange:"c-50:c+50",
+                onSelect:         
+                  function(date) {
+                      //alert(date);
+                  }
+            });
+
+            $( "#from_datepicker" ).datepicker({ 
+                    minDate: new Date(0), maxDate: new Date(), 
+                    changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", yearRange:"c-50:c+50", 
+                    onSelect: function(date) {
+                        //alert(date);
+                        //$( "#to_datepicker" ).datepicker( {minDate: new Date()} );
+                        var minDate = $( ".selector" ).datepicker( "option", "minDate" );
+                                // setter
+                        $( "#to_datepicker" ).datepicker( "option", "minDate", date );  
+                    }
+            });
+
+            $( "#from_datepicker" ).datepicker( "setDate", new Date(0));
+            $( "#to_datepicker" ).datepicker( "setDate", new Date());
+      });
+         // background-color: #7FFFD4;
+      $(document).ready(function() {
+          socket.emit('GetPost');
+          socket.on('Posts', function(Entries) {
+            $.each(Entries, function(index, element) {
+              $.each(element, function(index1, value) {
+                JogPosts.push(value);   
+                if(value.date != null && value.date != ""){
+                }
+              });
+            });
+
+            var JogPostsSorted = [];
+            
+            JogPosts.sort(function (a, b) {
+              var date1 = new Date(a.date);
+              var date2 = new Date(b.date);
+              return date1 > date2;
+            });
+
+            var l = JogPosts.length;
+            var WeekNumbers = [];
+
+            for(var i=0; i<l; i++) {
+              var dateEntry = new Date(JogPosts[i].date);
+              var weekNumber = $.datepicker.iso8601Week(dateEntry);
+              var fullYear = dateEntry.getFullYear();
+              var WeekOfYear = weekNumber + '-' + fullYear;
+          
+              if(WeekNumbers[WeekOfYear]!=null && WeekNumbers[WeekOfYear]!="") {
+                WeekNumbers[WeekOfYear].distance += parseInt(JogPosts[i].distance);
+                WeekNumbers[WeekOfYear].time += parseInt(JogPosts[i].time);
+              } else {
+                WeekNumbers[WeekOfYear] = {distance: parseInt(JogPosts[i].distance), time: parseInt(JogPosts[i].time)};
+              }
+            }
+            drawVisualization(JogPosts);
+          });
+          
+          socket.on('PostAdded', function(result) {
+             if(result.success==true) {
+                var entrydata=result.entry;
+                var entryDate=new Date(entrydata.date);
+                var entryDateString=entryDate.toDateString();//toLocaleDateString  
+                $('#JogEntryTable').prepend("<tr bgcolor='#CEF6F5' align='center'><td>"+entryDateString+"</td><td>" + entrydata.distance + "</td><td>"+entrydata.time+"</td><td>" + entrydata.speed + "</td></tr>");
+                JogPosts.push(result.entry);
+              }
+              chart.clearChart();
+              drawVisualization(JogPosts);
+          });
+
+          $('#JogEntryFilter').click(function() {   
+              var fromDate = new Date($( "#from_datepicker" ).datepicker( "getDate" ));
+              var toDate = new Date($( "#to_datepicker" ).datepicker( "getDate" ));
+              var JogPostsFiltered = [];
+
+              $('#JogEntryTable tbody').empty();
+              $( "#date_entry" ).datepicker( "setDate", '');
+              $("#distance_entry").val('');
+              $("#time_entry").val('');
+              
+              // refresh the posts entry tables to limit to this filter. 
+              $.each(JogPosts, function(index, value) {
+                var currDate = new Date(value.date);
+                var entryDateString = currDate.toDateString();
+                if(currDate>=fromDate && currDate<=toDate) {
+                  JogPostsFiltered.push(value);
+                  $('#JogEntryTable tbody').append("<tr bgcolor='#CEF6F5' align='center'><td>" + entryDateString + "</td><td>"+value.distance+"</td><td>" + value.time + "</td><td>" + value.speed + "</td></tr>");
+                }
+              });
+
+              JogPostsFiltered.sort(function (a, b) {
+                var date1 = new Date(a.date);
+                var date2 = new Date(b.date);
+                return date1 > date2;
+              });
+
+              var l = JogPostsFiltered.length;
+              var WeekNumbers = [];
+
+              for(var i=0; i<l; i++) {
+                var dateEntry = new Date(JogPostsFiltered[i].date);
+                var weekNumber = $.datepicker.iso8601Week(dateEntry);
+                var fullYear = dateEntry.getFullYear();
+                var WeekOfYear = weekNumber + '-' + fullYear;
+                 
+                if(WeekNumbers[WeekOfYear]!=null && WeekNumbers[WeekOfYear]!="") {
+                    WeekNumbers[WeekOfYear].distance += parseInt(JogPostsFiltered[i].distance);
+                    WeekNumbers[WeekOfYear].time += parseInt(JogPostsFiltered[i].time);
+                } else {
+                    WeekNumbers[WeekOfYear] = {distance: parseInt(JogPostsFiltered[i].distance), time: parseInt(JogPostsFiltered[i].time)};
+                }
+              }
+             chart.clearChart();
+              //drawVisualization(JogPosts);
+             drawVisualization(JogPostsFiltered);
+             return false; 
+          });
+          
+          $('#JogEntryAdd').submit(function() {
+              var dateEntry = $( "#date_entry" ).datepicker( "getDate" );
+              var distanceEntry = $("#distance_entry").val();
+              var timeEntry = $("#time_entry").val();
+              var speed = (distanceEntry/timeEntry).toFixed(2);
+              if(distanceEntry=='' || timeEntry=='') {
+                return false;
+              }
+              
+              var weekNumber = $.datepicker.iso8601Week( new Date( dateEntry ) );
+              
+              socket.emit('AddPost', { date: dateEntry, distance: distanceEntry, time: timeEntry, speed: speed });
+              
+              $( "#date_entry" ).datepicker( "setDate", '');
+              $("#distance_entry").val('');
+              $("#time_entry").val('');
+              return false;
+          });
+      });
+    </script>
+
+</html>

@@ -1,0 +1,130 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+#menu {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 12px;
+  color: #888;
+}
+
+#menu .name:after {
+  content: ' ';
+}
+
+#menu a {
+  text-decoration: none;
+  margin-left: 5px;
+  color: black;
+}
+
+.date_input {
+  width: 110px;
+}
+
+.distance_input {
+  position: relative;
+  left: 20px;
+  width: 66px;
+}
+
+.time_input {
+  position: relative;
+  left: 10px;
+  width: 60px;
+}
+
+.main-heading {
+  background-color: tomato;
+  font-size: 46px;
+  font-family: sans-serif;
+  text-align: center;
+  font-name: Verdana;
+  height: 30%;
+  background-image:
+    linear-gradient(
+      tomato,
+      salmon
+    );
+}
+
+.first-one {
+  position: relative;
+  top: 30px;
+}
+
+.second-one {
+  position: relative;
+  top: 30px;
+}
+
+.heading_entry {
+  font-size: 20px;
+  font-weight: bold;
+  font-family: sans-serif;
+  width: 50%;
+}
+
+.filter_input {
+  position: relative;
+  left: 10px;
+  width: 70px;
+  height: 26px;
+  background-color: silver;
+  border-color: #FFFFFF;
+  font-size: 16px;
+  font-weight: normal;
+  background-image:
+    linear-gradient(
+      #A1A1A1,
+      #EDEDED
+    );
+}
+
+.entry_input {
+  position: relative;
+  left: 30px;
+  width: 100px;
+  height: 27px;
+  background-color: silver;
+  border-color: #FFFFFF;
+  font-size: 16px;
+  font-weight: normal;
+  background-image:
+    linear-gradient(
+      #A1A1A1,
+      #EDEDED
+    );
+}
+
+.Entry-Container {
+  position: relative;
+  top: 10px;
+}
+
+.EntryTable {
+  position: relative;
+  top: 60px;
+}
+
+.JogEntries {
+  position: relative;
+  width: 50%;
+  align: center;
+}
+
+.chart-pos {
+  position: relative;
+  top: 16px;
+}
+
+.JogEntries tr:hover {
+  background: #3CB371;
+}

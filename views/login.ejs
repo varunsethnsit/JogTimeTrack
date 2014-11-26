@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="http://code.jquery.com/jquery-1.8.0.min.js" type='text/javascript'></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="http://jqueryvalidation.org/files/dist/jquery.validate.min.js"></script>
+  </head>
+  <body>
+    <% include menu %>
+    <h1><%= title %></h1>
+    <p>Fill in the form below to sign in!</p>
+
+    <% include messages %>
+
+    <form action='/login' method='post' id="LoginForm">
+      <p>
+        <input type='text' name='user[name]' placeholder='Username' id="UserName"/>
+      </p>
+      <p>
+        <input type='password' name='user[pass]' placeholder='Password' />
+      </p>
+      <p>
+        <input type='submit' value='Login' />
+      </p>
+    </form>
+  </body>
+  <script>
+      //$('#LoginForm').submit(function() {
+          //alert('Login Form');
+      //    if($("#UserName").val().length == 0) {
+      //      alert('Empty Field');
+      //      $('#UserName').addClass('error'); 
+      //      $('#UserName').after("<span class='error'> Please enter your Username </span>");
+      //      return false;
+      //    }
+      //});
+
+      $('#LoginForm').validate({
+          rules: {
+            "user[name]": {
+              required: true
+            },
+            "user[pass]": {
+              required: true
+            } 
+          }
+      });
+  </script>
+</html>
